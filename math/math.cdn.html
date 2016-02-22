@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Math</title>
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<div class="container">
+
+<table id="option-table" class="table table-bordered">
+    <thead>
+        <caption> Options </caption>
+    </thead>
+    <tbody>
+        <tr>
+            <td>操作数上限</td><td><input value="20" id="operand_max"></input></td>
+            <td>操作数下限</td><td><input value="0" id="operand_min"></input></td>
+            <td>结果上限</td><td><input value="20" id="result_max"></input></td>
+            <td>结果下限</td><td><input value="0" id="result_min"></input></td>
+        </tr>
+        <tr>
+            <td>双操作数</td><td><input value="10" id="gen2_count"></input></td>
+            <td>三操作数</td><td><input value="10" id="gen3_count"></input></td>
+            <td>输出列数</td><td><input value="2" id="output_column"></input></td>
+            <td>输出行数</td><td><input value="10" id="output_row"></input></td>
+        </tr>
+    </tbody>
+</table>
+
+<hr>
+<button id="fire" class="btn btn-lg">输出</button>
+<hr>
+
+<table id="output-table" class="table table-striped">
+    <tbody>
+    </tbody>
+</table>
+
+<hr>
+</div>
+<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+
+<script type="text/javascript">
+
+var options = {
+    op_list: ['+', '-']
+};
+
+
+function number(max, min) {
+    if (max == undefined) {
+        max = 20;
+    }
+    if (min == undefined) {
+        min = 0;
+    }
+    return Math.floor(Math.random() * (max - min) + min + 0.5);
+}
+
+
+function gen2() {
+    var op = options.op_list[number(1, 0)],
+    or1 = number(options.operand_max, options.operand_min),
+    or2 = number(options.operand_max, options.operand_min);
+
+    if (op == '-') {
+        if (or1 - or2 < options.result_min)
+            return gen2();
+    }
+    if (op == '+') {
+        if (or1 + or2 > options.result_max)
+            return gen2();
+    }
+    return [or1, op, or2];
+}
+
+function gen3() {
+    var op = options.op_list[number(1, 0)],
+    or3 = number(options.operand_max, options.operand_min),
+    exp = gen2();
+
+    var or1 = 0;
+    if (exp[1] == '+') {
+        or1 = exp[0] + exp[2];
+    } else if (exp[1] == '-') {
+        or1 = exp[0] - exp[2];
+    }
+    if (op == '-') {
+        if (or1 - or3 < options.result_min)
+            return gen3();
+    }
+    if (op == '+') {
+        if (or1 + or3 > options.result_max)
+            return gen3();
+    }
+    exp.push(op);
+    exp.push(or3);
+    return exp;
+}
+
+function format(exp) {
+    var line = '';
+    for( var x in exp) {
+        line += exp[x] + ' ';
+    }
+    return line + '= ___';
+}
+
+function load_options() {
+    $('#option-table input').each(function(){
+        options[$(this).attr('id')] = parseInt($(this).val());
+    });
+}
+
+function generate() {
+    var n1, n2, line, lines, exp_count;
+
+    exp_count = 0;
+    for (n1 = 0; n1 < options.output_row; ++n1) {
+        line = '';
+        for (n2 = 0; n2 < options.output_column; ++n2) {
+            if (exp_count < options.gen2_count) {
+                line += '<td>' + format(gen2()) + '</td>';    
+            } else {
+                line += '<td>' + format(gen3()) + '</td>';    
+            }
+            exp_count += 1;
+        }
+        lines += '<tr>' + line + '</tr>';
+    }
+    $('#output-table').find('tbody').empty();
+    $('#output-table').find('tbody').append(lines);
+}
+
+$(document).ready(function(){
+
+    $('#fire').click(function(){
+        load_options();
+        generate();
+    });
+
+});
+
+</script>
+</body>
+</html>
